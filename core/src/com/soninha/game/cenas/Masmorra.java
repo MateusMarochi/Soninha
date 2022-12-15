@@ -1,10 +1,13 @@
 package com.soninha.game.cenas;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -30,6 +33,10 @@ public class Masmorra implements Screen {
     private Entidade m1, m2, sona;
     private Image minion1, minion2, sonaImg;
 
+    SpriteBatch batch;
+    private ParticleEffect effect, cura, magico;
+    int mouseX = 0, mouseY = 0;
+
     private Magia magiaSelecionada;
 
     Image image1;
@@ -49,7 +56,7 @@ public class Masmorra implements Screen {
         fundo.setPosition(0, 0);
         stage.addActor(fundo);
 
-        sona = new Entidade("Sona", 18);
+        sona = new Entidade("Sona", 1);
         TextureRegion sona_tx = new TextureRegion(minionTexture);
         sona_tx.setRegion(0, 387, 460, 280);
         sonaImg = new Image(sona_tx);
@@ -159,7 +166,18 @@ public class Masmorra implements Screen {
                 }
             });
             stage.addActor(magias[i]);
+
         }
+
+        batch = new SpriteBatch();
+
+        effect = new ParticleEffect(); // para adcionar o efeito de particula
+        cura = new ParticleEffect();
+        magico = new ParticleEffect();
+
+        effect.load(Gdx.files.internal("sangue.p"), Gdx.files.local(""));// adiciona  o local e o nome do arquivo
+        cura.load(Gdx.files.internal("cura.p"), Gdx.files.local(""));
+        magico.load(Gdx.files.internal("magico.p"), Gdx.files.local(""));
     }
 
     @Override
@@ -199,6 +217,40 @@ public class Masmorra implements Screen {
 
         stage.act();
         stage.draw();
+
+        batch.begin();
+        effect.draw(batch);// adicionar pra colocar o efeito
+        cura.draw(batch);
+        magico.draw(batch);
+        batch.end();
+
+        effect.update(Gdx.graphics.getDeltaTime());//adicionar para gerar a cada clilck
+        cura.update(Gdx.graphics.getDeltaTime());
+        magico.update(Gdx.graphics.getDeltaTime());
+
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) { // função pra gerar no click            mouseX = Gdx.input.getX();
+            mouseY = Gdx.graphics.getHeight() - 1 - Gdx.input.getY();// inverte o eixo Y
+            mouseX = Gdx.input.getX();
+            if (magiaSelecionada != null) {
+                if (magiaSelecionada.tipo == "cura") {
+                    cura.setPosition(mouseX, mouseY);
+                    cura.start();
+                    cura.reset();
+                } else if (magiaSelecionada.tipo == "dano") {
+                    float danoMagico = magiaSelecionada.danoMagico + sona.getDanoMagico() * magiaSelecionada.bonusMagico;
+                    float danoFisico = magiaSelecionada.danoFisico + sona.getDanoMagico() * magiaSelecionada.bonusFisico;
+                    if (danoFisico > danoMagico) {
+                        effect.setPosition(mouseX, mouseY);// seta a posiçao
+                        effect.start();//inicia o efeito
+                        effect.reset();//reseta pra executar em um novo click
+                    } else {
+                        magico.setPosition(mouseX, mouseY);
+                        magico.start();//inicia o efeito
+                        magico.reset();
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -224,24 +276,28 @@ public class Masmorra implements Screen {
 
     @Override
     public void dispose() {
+        batch.dispose();
         mySkin.dispose();
         stage.dispose();
+        effect.dispose();// adicionar pra limpar
+        cura.dispose();
+        magico.dispose();
     }
 
     private Entidade getMinion() {
         Random rand = new Random();
         String tipos[] = {"Mago", "Guerreiro"};
 
-        Entidade minion = new Entidade(tipos[rand.nextInt(tipos.length)], rand.nextInt(6));
+        Entidade minion = new Entidade(tipos[rand.nextInt(tipos.length)], rand.nextInt(15));
         return minion;
     }
 
     private Image getMinionImage(Entidade minion) {
         TextureRegion textureRegion = new TextureRegion(minionTexture);
         if (minion.nome == "Mago")
-            textureRegion.setRegion(0 + 140 * (int) (minion.level / 2), 0, 140, 163);
+            textureRegion.setRegion(0 + 140 * (int) (minion.level / 5), 0, 140, 163);
         if (minion.nome == "Guerreiro")
-            textureRegion.setRegion(0 + 253 * (int) (minion.level / 2), 166, 253, 218);
+            textureRegion.setRegion(0 + 253 * (int) (minion.level / 5), 166, 253, 218);
         return new Image(textureRegion);
     }
 

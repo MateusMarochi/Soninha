@@ -69,13 +69,13 @@ public class Entidade {
         if (nome.equals("Guerreiro")) {
             this.level = level;
             if (level <= 5) {
-                vida = 455 + 22 * level + 0.3f * (level - 1) / 2 * level;
+                vida = 455 + 22 * level + 0.3f ;
                 danoFisico = 12;
                 armadura = 0;
             } else {
-                vida = 568 + 32.25f * (level - 5) + 0.3f * (level - 1) / 2 * level;
+                vida = 568 + 32.25f * (level - 5);
                 danoFisico = 12 + 3.41f * level;
-                armadura = 0.085f * (level - 6) / 2 * (level - 5);
+                armadura = 0.085f * (level - 6) ;
             }
             vidaMax = vida;
             mana = 0;
